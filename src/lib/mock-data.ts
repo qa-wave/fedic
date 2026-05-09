@@ -37,6 +37,53 @@ export const mockBanka: FlexiBanka[] = [
   { id: 7, kod: "BV-2024/007", datVyst: "2024-03-20", sumCelkem: 78100, firma: "code:PQR", popis: "Částečná úhrada FV-2024/007", typPohybuK: "typPohybu.prijem", sparpiSym: "2024007" },
 ];
 
+export interface MockPokladniPohyb {
+  id: number;
+  kod: string;
+  datVyst: string;
+  sumCelkem: number;
+  firma?: string;
+  popis: string;
+  typPohybuK: string;
+  pokladna: string;
+}
+
+export const mockPokladna: MockPokladniPohyb[] = [
+  { id: 1, kod: "PP-2024/001", datVyst: "2024-03-01", sumCelkem: 1500, firma: "code:ABC", popis: "Drobný nákup kancelářských potřeb", typPohybuK: "typPohybu.vydej", pokladna: "Hlavní pokladna" },
+  { id: 2, kod: "PP-2024/002", datVyst: "2024-03-04", sumCelkem: 3200, firma: "code:XYZ", popis: "Hotovostní úhrada faktury", typPohybuK: "typPohybu.prijem", pokladna: "Hlavní pokladna" },
+  { id: 3, kod: "PP-2024/003", datVyst: "2024-03-07", sumCelkem: 890, firma: undefined, popis: "Poštovné a kolky", typPohybuK: "typPohybu.vydej", pokladna: "Hlavní pokladna" },
+  { id: 4, kod: "PP-2024/004", datVyst: "2024-03-10", sumCelkem: 15000, firma: "code:DEF", popis: "Záloha na služby", typPohybuK: "typPohybu.prijem", pokladna: "Hlavní pokladna" },
+  { id: 5, kod: "PP-2024/005", datVyst: "2024-03-12", sumCelkem: 450, firma: undefined, popis: "Občerstvení na poradu", typPohybuK: "typPohybu.vydej", pokladna: "Drobná pokladna" },
+  { id: 6, kod: "PP-2024/006", datVyst: "2024-03-14", sumCelkem: 2800, firma: "code:GHI", popis: "Hotovostní tržba", typPohybuK: "typPohybu.prijem", pokladna: "Hlavní pokladna" },
+  { id: 7, kod: "PP-2024/007", datVyst: "2024-03-17", sumCelkem: 1200, firma: undefined, popis: "PHM - služební cesta", typPohybuK: "typPohybu.vydej", pokladna: "Drobná pokladna" },
+  { id: 8, kod: "PP-2024/008", datVyst: "2024-03-19", sumCelkem: 5600, firma: "code:JKL", popis: "Hotovostní úhrada dobropisu", typPohybuK: "typPohybu.prijem", pokladna: "Hlavní pokladna" },
+  { id: 9, kod: "PP-2024/009", datVyst: "2024-03-21", sumCelkem: 350, firma: undefined, popis: "Parkovné", typPohybuK: "typPohybu.vydej", pokladna: "Drobná pokladna" },
+  { id: 10, kod: "PP-2024/010", datVyst: "2024-03-23", sumCelkem: 7800, firma: "code:MNO", popis: "Záloha na konzultaci", typPohybuK: "typPohybu.prijem", pokladna: "Hlavní pokladna" },
+];
+
+export interface MockDokument {
+  id: number;
+  nazev: string;
+  typ: "smlouva" | "podklad" | "report" | "faktura" | "ostatni";
+  velikost: string;
+  datum: string;
+  nahral: string;
+  popis?: string;
+}
+
+export const mockDokumenty: MockDokument[] = [
+  { id: 1, nazev: "Smlouva_ABC_Systems.pdf", typ: "smlouva", velikost: "2.4 MB", datum: "2024-03-01", nahral: "Radek Fedič", popis: "Rámcová smlouva o vedení účetnictví" },
+  { id: 2, nazev: "Podklady_Q1_2024.xlsx", typ: "podklad", velikost: "1.8 MB", datum: "2024-03-05", nahral: "Tomáš Mertin", popis: "Účetní podklady za Q1 2024" },
+  { id: 3, nazev: "Danove_priznani_2023.pdf", typ: "report", velikost: "3.1 MB", datum: "2024-03-10", nahral: "Radek Fedič", popis: "Daňové přiznání za rok 2023" },
+  { id: 4, nazev: "FV-2024-001_priloha.pdf", typ: "faktura", velikost: "540 KB", datum: "2024-03-12", nahral: "Radek Fedič", popis: "Příloha k faktuře FV-2024/001" },
+  { id: 5, nazev: "Plna_moc_2024.pdf", typ: "smlouva", velikost: "890 KB", datum: "2024-03-14", nahral: "Tomáš Mertin", popis: "Plná moc pro zastupování na FÚ" },
+  { id: 6, nazev: "Mzdove_vystupy_03.pdf", typ: "report", velikost: "1.2 MB", datum: "2024-03-18", nahral: "Radek Fedič", popis: "Mzdové výstupy za březen 2024" },
+  { id: 7, nazev: "Banka_vykaz_03.csv", typ: "podklad", velikost: "320 KB", datum: "2024-03-20", nahral: "Tomáš Mertin", popis: "Bankovní výpis za březen" },
+  { id: 8, nazev: "Inventura_2023.xlsx", typ: "report", velikost: "4.5 MB", datum: "2024-03-22", nahral: "Radek Fedič", popis: "Inventarizace majetku 2023" },
+  { id: 9, nazev: "Dodatek_smlouvy_XYZ.pdf", typ: "smlouva", velikost: "680 KB", datum: "2024-03-25", nahral: "Tomáš Mertin", popis: "Dodatek ke smlouvě s XYZ Trading" },
+  { id: 10, nazev: "Cestovni_prikazy_03.pdf", typ: "ostatni", velikost: "1.5 MB", datum: "2024-03-27", nahral: "Radek Fedič", popis: "Cestovní příkazy za březen" },
+];
+
 export function formatCZK(amount: number): string {
   return new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 }
