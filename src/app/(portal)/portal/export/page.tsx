@@ -1,9 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, FileText, BarChart3, Table, FileSpreadsheet } from "lucide-react";
+import { Download, FileText, BarChart3, Table, FileSpreadsheet, CheckCircle2 } from "lucide-react";
 
 const exports = [
   {
@@ -49,7 +50,29 @@ const formatIcons: Record<string, typeof FileText> = {
   ISDOC: FileText,
 };
 
+function triggerDownload(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function ExportPage() {
+  const [downloaded, setDownloaded] = useState<Set<string>>(new Set());
+
+  function handleDownload(name: string, format: string) {
+    const key = `${name}-${format}`;
+    const ext = format.toLowerCase();
+    const filename = `${name.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.${ext}`;
+    const content = `[Demo export] ${name}\nFormát: ${format}\nPerioda: ${new Date().toLocaleDateString("cs-CZ")}\n\nTento soubor je demo export z portálu Fedic Finance.\nV produkčním prostředí bude vygenerován skutečný ${format} dokument z dat v Abra Flexi.`;
+
+    triggerDownload(filename, content);
+    setDownloaded((prev) => new Set(prev).add(key));
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -84,9 +107,21 @@ export default function ExportPage() {
                     <div className="mt-4 flex flex-wrap gap-2">
                       {item.formats.map((fmt) => {
                         const Icon = formatIcons[fmt] || FileText;
+                        const key = `${item.name}-${fmt}`;
+                        const wasDownloaded = downloaded.has(key);
                         return (
-                          <Button key={fmt} variant="outline" size="sm" className="gap-1.5">
-                            <Icon className="h-3.5 w-3.5" />
+                          <Button
+                            key={fmt}
+                            variant={wasDownloaded ? "default" : "outline"}
+                            size="sm"
+                            className="gap-1.5"
+                            onClick={() => handleDownload(item.name, fmt)}
+                          >
+                            {wasDownloaded ? (
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            ) : (
+                              <Icon className="h-3.5 w-3.5" />
+                            )}
                             {fmt}
                             <Download className="h-3 w-3 ml-1" />
                           </Button>

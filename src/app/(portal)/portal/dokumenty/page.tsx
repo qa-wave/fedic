@@ -73,8 +73,24 @@ const columns: ColumnDef<MockDokument>[] = [
   {
     id: "actions",
     header: "",
-    cell: () => (
-      <Button variant="ghost" size="sm">
+    cell: ({ row }) => (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => {
+          const doc = row.original;
+          const blob = new Blob(
+            [`[Demo] ${doc.nazev}\n\n${doc.popis || ""}\nNahrál: ${doc.nahral}\nDatum: ${doc.datum}\n\nTento soubor je demo — v produkci bude stažen skutečný dokument.`],
+            { type: "text/plain;charset=utf-8" },
+          );
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = doc.nazev;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+      >
         <Download className="h-4 w-4" />
       </Button>
     ),

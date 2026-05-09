@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -14,17 +14,15 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function doLogin(username: string, password: string) {
     setError("");
     setLoading(true);
 
-    const formData = new FormData(e.currentTarget);
-    const username = formData.get("username") as string;
     const result = await signIn("credentials", {
       username,
-      password: formData.get("password"),
+      password,
       redirect: false,
     });
 
@@ -33,15 +31,15 @@ export default function LoginPage() {
     if (result?.error) {
       setError("Nesprávné přihlašovací údaje");
     } else {
-      // Redirect based on who logged in
-      // Radek (admin) → dashboard, Tomáš (client) → portal
-      if (username === "Radek") {
-        router.push("/dashboard");
-      } else {
-        router.push("/portal");
-      }
+      router.push(username === "Radek" ? "/dashboard" : "/portal");
       router.refresh();
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    await doLogin(formData.get("username") as string, formData.get("password") as string);
   }
 
   return (
@@ -53,7 +51,7 @@ export default function LoginPage() {
           <CardDescription>Přihlaste se do účetního portálu Fedic Finance</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Uživatel</Label>
               <Input
@@ -88,12 +86,9 @@ export default function LoginPage() {
             <p className="text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Demo přístupy</p>
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => {
-                  const form = document.querySelector("form") as HTMLFormElement;
-                  (form.querySelector("#username") as HTMLInputElement).value = "Tomáš";
-                  (form.querySelector("#password") as HTMLInputElement).value = "Mertin";
-                }}
-                className="flex items-center gap-2 rounded-lg border p-3 text-left text-xs transition-colors hover:bg-muted"
+                disabled={loading}
+                onClick={() => doLogin("Tomáš", "Mertin")}
+                className="flex items-center gap-2 rounded-lg border p-3 text-left text-xs transition-colors hover:bg-muted disabled:opacity-50"
               >
                 <User className="h-4 w-4 text-primary" />
                 <div>
@@ -102,12 +97,9 @@ export default function LoginPage() {
                 </div>
               </button>
               <button
-                onClick={() => {
-                  const form = document.querySelector("form") as HTMLFormElement;
-                  (form.querySelector("#username") as HTMLInputElement).value = "Radek";
-                  (form.querySelector("#password") as HTMLInputElement).value = "Fedič";
-                }}
-                className="flex items-center gap-2 rounded-lg border p-3 text-left text-xs transition-colors hover:bg-muted"
+                disabled={loading}
+                onClick={() => doLogin("Radek", "Fedič")}
+                className="flex items-center gap-2 rounded-lg border p-3 text-left text-xs transition-colors hover:bg-muted disabled:opacity-50"
               >
                 <Shield className="h-4 w-4 text-accent" />
                 <div>
