@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageCircle, X, Send, Bot, User } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, Mail, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
 interface Message {
@@ -10,6 +10,7 @@ interface Message {
   text: string;
   sender: "user" | "bot";
   time: string;
+  isEmailForm?: boolean;
 }
 
 const quickReplies = [
@@ -17,18 +18,38 @@ const quickReplies = [
   "Potřebuji daňové poradenství",
   "Zajímá mě ERP implementace",
   "Chci se domluvit na schůzce",
+  "Jaké máte ceny?",
+  "Kde vás najdu?",
 ];
 
 const botResponses: Record<string, string> = {
   "Chci vést účetnictví":
-    "Skvělé! Vedení účetnictví je naše hlavní služba. Nabízíme kompletní online účetnictví za výhodných podmínek. Zanechte nám prosím email a ozveme se vám do 24 hodin.",
+    "Skvělé! Vedení účetnictví je naše hlavní služba. Nabízíme kompletní online účetnictví — od zpracování dokladů přes daňová přiznání až po reporting. Ceny začínají od 3 000 Kč/měsíc podle rozsahu. Chcete nezávaznou kalkulaci?",
   "Potřebuji daňové poradenství":
-    "Rádi vám pomůžeme s daněmi. Zajišťujeme daňové přiznání, DPH, silniční daň i optimalizaci. Můžete nám napsat více o vaší situaci?",
+    "Rádi vám pomůžeme s daněmi! Zajišťujeme daňové přiznání (DPFO, DPPO), DPH, silniční daň i daňovou optimalizaci. Máte konkrétní otázku, nebo chcete domluvit konzultaci?",
   "Zajímá mě ERP implementace":
-    "Specializujeme se na implementaci ABRA Flexi. Pomůžeme vám s výběrem, nastavením i migrací dat. Jaký systém aktuálně používáte?",
+    "Specializujeme se na implementaci ABRA Flexi — od analýzy potřeb přes nastavení, migraci dat až po školení. Jaký systém aktuálně používáte? Rádi připravíme návrh řešení na míru.",
   "Chci se domluvit na schůzce":
-    "Samozřejmě! Můžete nás kontaktovat na info@fedicfinance.com nebo vyplnit formulář na našem webu. Preferujete osobní schůzku nebo online hovor?",
+    "Samozřejmě! Nabízíme osobní schůzku v naší kanceláři v Praze, nebo online hovor přes Google Meet / Teams. Jaký termín by vám vyhovoval?",
+  "Jaké máte ceny?":
+    "Naše ceny závisí na rozsahu služeb:\n\n• Daňová evidence: od 2 000 Kč/měsíc\n• Podvojné účetnictví: od 3 000 Kč/měsíc\n• Mzdy: od 300 Kč/zaměstnance\n• ERP implementace: individuální kalkulace\n\nRádi připravíme nezávaznou nabídku přímo pro vás.",
+  "Kde vás najdu?":
+    "Sídlíme v Praze — Václavské náměstí 1, 110 00 Praha 1. Kancelář je otevřená Po–Pá 8:00–17:00. Můžete nás také kontaktovat na info@fedicfinance.com nebo +420 777 123 456.",
 };
+
+// Keyword-based fallback matching
+function findResponse(msg: string): string | null {
+  const lower = msg.toLowerCase();
+  if (lower.includes("účet") || lower.includes("faktur")) return botResponses["Chci vést účetnictví"];
+  if (lower.includes("daň") || lower.includes("dph") || lower.includes("přiznání")) return botResponses["Potřebuji daňové poradenství"];
+  if (lower.includes("erp") || lower.includes("flexi") || lower.includes("abra")) return botResponses["Zajímá mě ERP implementace"];
+  if (lower.includes("schůz") || lower.includes("sejít") || lower.includes("konzultac")) return botResponses["Chci se domluvit na schůzce"];
+  if (lower.includes("cen") || lower.includes("kolik") || lower.includes("stoj")) return botResponses["Jaké máte ceny?"];
+  if (lower.includes("kde") || lower.includes("adres") || lower.includes("kontakt") || lower.includes("telefon")) return botResponses["Kde vás najdu?"];
+  if (lower.includes("díky") || lower.includes("děkuj") || lower.includes("dík")) return "Rádi jsme pomohli! Pokud budete potřebovat cokoliv dalšího, neváhejte se ozvat. 🙂";
+  if (lower.includes("ahoj") || lower.includes("dobrý den") || lower.includes("čau")) return "Dobrý den! Jak vám mohu pomoci? Můžete se zeptat na naše služby, ceny, nebo si domluvit schůzku.";
+  return null;
+}
 
 function getTime() {
   return new Date().toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
@@ -46,6 +67,8 @@ export function ChatWidget() {
   ]);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [email, setEmail] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -57,15 +80,15 @@ export function ChatWidget() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  function addBotResponse(text: string) {
+  function addBotResponse(text: string, isEmailForm?: boolean) {
     setTyping(true);
     setTimeout(() => {
       setTyping(false);
       setMessages((prev) => [
         ...prev,
-        { id: Date.now(), text, sender: "bot", time: getTime() },
+        { id: Date.now(), text, sender: "bot", time: getTime(), isEmailForm },
       ]);
-    }, 800 + Math.random() * 700);
+    }, 600 + Math.random() * 600);
   }
 
   function handleSend(text?: string) {
@@ -78,14 +101,35 @@ export function ChatWidget() {
     ]);
     setInput("");
 
-    const matched = botResponses[msg];
-    if (matched) {
-      addBotResponse(matched);
-    } else {
-      addBotResponse(
-        "Děkuji za zprávu! Pro rychlejší odpověď nás kontaktujte na info@fedicfinance.com nebo zavolejte. Rádi vám pomůžeme."
-      );
+    const exact = botResponses[msg];
+    if (exact) {
+      addBotResponse(exact);
+      return;
     }
+
+    const fuzzy = findResponse(msg);
+    if (fuzzy) {
+      addBotResponse(fuzzy);
+      return;
+    }
+
+    // Fallback with email capture offer
+    addBotResponse(
+      "Děkuji za zprávu! Na tuto otázku vám rádi odpovíme osobně. Zanechte nám email a ozveme se vám do 24 hodin, nebo nás kontaktujte přímo na info@fedicfinance.com.",
+      true,
+    );
+  }
+
+  function handleEmailSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now(), text: `📧 ${email}`, sender: "user", time: getTime() },
+    ]);
+    setEmail("");
+    setEmailSent(true);
+    addBotResponse("Děkujeme! Váš email jsme zaznamenali a ozveme se vám co nejdříve. Přejeme hezký den! 🙂");
   }
 
   return (
@@ -103,7 +147,6 @@ export function ChatWidget() {
             className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30"
           >
             <MessageCircle className="h-6 w-6" />
-            {/* Pulse ring */}
             <span className="absolute inset-0 animate-ping rounded-full bg-primary opacity-20" />
           </motion.button>
         )}
@@ -168,7 +211,7 @@ export function ChatWidget() {
                         : "rounded-tr-sm bg-primary text-primary-foreground"
                     }`}
                   >
-                    {msg.text}
+                    <span className="whitespace-pre-line">{msg.text}</span>
                     <p
                       className={`mt-1 text-[10px] ${
                         msg.sender === "bot" ? "text-muted-foreground" : "text-primary-foreground/60"
@@ -179,6 +222,34 @@ export function ChatWidget() {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Email form inline */}
+              {messages.some((m) => m.isEmailForm) && !emailSent && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <form onSubmit={handleEmailSubmit} className="flex gap-2 ml-9">
+                    <div className="flex items-center gap-2 rounded-xl border bg-background px-3 py-2 flex-1">
+                      <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="váš@email.cz"
+                        className="flex-1 bg-transparent text-sm outline-none"
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                      <Send className="h-3.5 w-3.5" />
+                    </button>
+                  </form>
+                </motion.div>
+              )}
+
+              {emailSent && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 ml-9 text-xs text-emerald-600">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Email zaznamenán
+                </motion.div>
+              )}
 
               {/* Typing indicator */}
               {typing && (

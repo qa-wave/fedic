@@ -1,13 +1,79 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Database, Globe, Key, Mail, Server, Shield, Webhook } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Database, Mail, Shield, Webhook, CheckCircle2, Loader2, Plus, Save, Trash2 } from "lucide-react";
+
+interface WebhookItem {
+  id: number;
+  name: string;
+  url: string;
+  active: boolean;
+}
 
 export default function AdminNastaveniPage() {
+  // Flexi API
+  const [flexiStatus, setFlexiStatus] = useState<"idle" | "testing" | "ok" | "error">("idle");
+
+  // SMTP
+  const [smtp, setSmtp] = useState({ server: "", port: "587", encryption: "TLS" });
+  const [smtpSaved, setSmtpSaved] = useState(false);
+
+  // Webhooks
+  const [webhooks, setWebhooks] = useState<WebhookItem[]>([
+    { id: 1, name: "Nová faktura → Slack", url: "https://hooks.slack.com/...", active: true },
+    { id: 2, name: "Úhrada přijata → Email", url: "Notifikace účetní", active: true },
+  ]);
+  const [webhookDialogOpen, setWebhookDialogOpen] = useState(false);
+  const [newWebhook, setNewWebhook] = useState({ name: "", url: "" });
+
+  // Security
+  const [auditStatus, setAuditStatus] = useState<"idle" | "running" | "done">("idle");
+
+  function testConnection() {
+    setFlexiStatus("testing");
+    setTimeout(() => setFlexiStatus("ok"), 1500);
+  }
+
+  function saveSMTP() {
+    setSmtpSaved(true);
+    setTimeout(() => setSmtpSaved(false), 2000);
+  }
+
+  function addWebhook() {
+    setWebhooks((prev) => [
+      ...prev,
+      { id: Date.now(), name: newWebhook.name, url: newWebhook.url, active: true },
+    ]);
+    setNewWebhook({ name: "", url: "" });
+    setWebhookDialogOpen(false);
+  }
+
+  function removeWebhook(id: number) {
+    setWebhooks((prev) => prev.filter((w) => w.id !== id));
+  }
+
+  function toggleWebhook(id: number) {
+    setWebhooks((prev) =>
+      prev.map((w) => (w.id === id ? { ...w, active: !w.active } : w))
+    );
+  }
+
+  function runAudit() {
+    setAuditStatus("running");
+    setTimeout(() => setAuditStatus("done"), 2000);
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -32,17 +98,31 @@ export default function AdminNastaveniPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm">Stav připojení</span>
-              <Badge className="bg-emerald-100 text-emerald-700">Připojeno</Badge>
+              {flexiStatus === "ok" ? (
+                <Badge className="bg-emerald-100 text-emerald-700 gap-1"><CheckCircle2 className="h-3 w-3" /> Připojeno</Badge>
+              ) : flexiStatus === "error" ? (
+                <Badge variant="destructive">Chyba</Badge>
+              ) : (
+                <Badge className="bg-emerald-100 text-emerald-700">Připojeno</Badge>
+              )}
             </div>
             <div className="space-y-2">
               <Label>URL instance</Label>
-              <Input value="https://tomas-mertin.flexibee.eu/c/fiktivni_firma" readOnly className="text-xs" />
+              <Input defaultValue="https://tomas-mertin.flexibee.eu/c/fiktivni_firma" className="text-xs" />
             </div>
             <div className="space-y-2">
               <Label>API uživatel</Label>
-              <Input value="••••••••" type="password" readOnly />
+              <Input defaultValue="••••••••" type="password" />
             </div>
-            <Button variant="outline" size="sm">Otestovat připojení</Button>
+            <Button variant="outline" size="sm" onClick={testConnection} disabled={flexiStatus === "testing"}>
+              {flexiStatus === "testing" ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Testuji...</>
+              ) : flexiStatus === "ok" ? (
+                <><CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Připojení OK</>
+              ) : (
+                "Otestovat připojení"
+              )}
+            </Button>
           </CardContent>
         </Card>
 
@@ -62,23 +142,40 @@ export default function AdminNastaveniPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm">Stav</span>
-              <Badge variant="secondary">Nenakonfigurováno</Badge>
+              {smtpSaved ? (
+                <Badge className="bg-emerald-100 text-emerald-700 gap-1"><CheckCircle2 className="h-3 w-3" /> Uloženo</Badge>
+              ) : smtp.server ? (
+                <Badge className="bg-emerald-100 text-emerald-700">Nakonfigurováno</Badge>
+              ) : (
+                <Badge variant="secondary">Nenakonfigurováno</Badge>
+              )}
             </div>
             <div className="space-y-2">
               <Label>SMTP server</Label>
-              <Input placeholder="smtp.gmail.com" />
+              <Input placeholder="smtp.gmail.com" value={smtp.server} onChange={(e) => setSmtp({ ...smtp, server: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Port</Label>
-                <Input placeholder="587" />
+                <Input value={smtp.port} onChange={(e) => setSmtp({ ...smtp, port: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Šifrování</Label>
-                <Input value="TLS" readOnly />
+                <Select value={smtp.encryption} onValueChange={(v) => v && setSmtp({ ...smtp, encryption: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TLS">TLS</SelectItem>
+                    <SelectItem value="SSL">SSL</SelectItem>
+                    <SelectItem value="STARTTLS">STARTTLS</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <Button variant="outline" size="sm">Uložit nastavení</Button>
+            <Button variant="outline" size="sm" onClick={saveSMTP}>
+              <Save className="mr-2 h-4 w-4" /> Uložit nastavení
+            </Button>
           </CardContent>
         </Card>
 
@@ -98,25 +195,31 @@ export default function AdminNastaveniPage() {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm">Aktivní webhooky</span>
-              <Badge>2</Badge>
+              <Badge>{webhooks.filter((w) => w.active).length}</Badge>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">Nová faktura → Slack</p>
-                  <p className="text-xs text-muted-foreground">POST https://hooks.slack.com/...</p>
+              {webhooks.map((wh) => (
+                <div key={wh.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{wh.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{wh.url}</p>
+                  </div>
+                  <div className="flex items-center gap-2 ml-3">
+                    <button onClick={() => toggleWebhook(wh.id)} className="cursor-pointer">
+                      <Badge className={wh.active ? "bg-emerald-100 text-emerald-700 cursor-pointer" : "cursor-pointer"} variant={wh.active ? "default" : "secondary"}>
+                        {wh.active ? "Aktivní" : "Vypnuto"}
+                      </Badge>
+                    </button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeWebhook(wh.id)}>
+                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </div>
                 </div>
-                <Badge className="bg-emerald-100 text-emerald-700">Aktivní</Badge>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">Úhrada přijata → Email</p>
-                  <p className="text-xs text-muted-foreground">Notifikace účetní</p>
-                </div>
-                <Badge className="bg-emerald-100 text-emerald-700">Aktivní</Badge>
-              </div>
+              ))}
             </div>
-            <Button variant="outline" size="sm">Přidat webhook</Button>
+            <Button variant="outline" size="sm" onClick={() => setWebhookDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Přidat webhook
+            </Button>
           </CardContent>
         </Card>
 
@@ -152,10 +255,44 @@ export default function AdminNastaveniPage() {
                 <Badge className="bg-emerald-100 text-emerald-700">Aktivní</Badge>
               </div>
             </div>
-            <Button variant="outline" size="sm">Bezpečnostní audit</Button>
+            <Button variant="outline" size="sm" onClick={runAudit} disabled={auditStatus === "running"}>
+              {auditStatus === "running" ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Probíhá audit...</>
+              ) : auditStatus === "done" ? (
+                <><CheckCircle2 className="mr-2 h-4 w-4 text-emerald-600" /> Audit OK — žádné hrozby</>
+              ) : (
+                "Bezpečnostní audit"
+              )}
+            </Button>
           </CardContent>
         </Card>
       </div>
+
+      {/* Webhook dialog */}
+      <Dialog open={webhookDialogOpen} onOpenChange={setWebhookDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Přidat webhook</DialogTitle>
+            <DialogDescription>Webhook bude zavolán při změně v systému</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Název</Label>
+              <Input value={newWebhook.name} onChange={(e) => setNewWebhook({ ...newWebhook, name: e.target.value })} placeholder="Např. Nový doklad → Slack" />
+            </div>
+            <div className="space-y-2">
+              <Label>URL</Label>
+              <Input value={newWebhook.url} onChange={(e) => setNewWebhook({ ...newWebhook, url: e.target.value })} placeholder="https://hooks.slack.com/..." />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWebhookDialogOpen(false)}>Zrušit</Button>
+            <Button onClick={addWebhook} disabled={!newWebhook.name || !newWebhook.url}>
+              <Plus className="mr-2 h-4 w-4" /> Přidat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
