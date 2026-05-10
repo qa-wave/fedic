@@ -2,6 +2,8 @@
 
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { NotificationBell } from "@/components/shared/notifications";
 import { VisualStyleProvider, StyleSwitcherBar, useVisualStyle } from "@/components/shared/style-switcher";
 
 export default function DashboardLayout({
@@ -32,11 +34,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       <DashboardSidebar />
       <main className="lg:pl-64">
         <div className="border-b bg-background/60 backdrop-blur-sm">
-          <div className="lg:pl-0">
+          <div className="flex items-center justify-between lg:pl-0">
             <StyleSwitcherBar />
+            <div className="pr-4">
+              <NotificationBell />
+            </div>
           </div>
         </div>
-        <div className="p-6 lg:p-8">{children}</div>
+        <div className="p-6 lg:p-8">
+          <div className="mb-4"><Breadcrumbs /></div>
+          {children}
+        </div>
       </main>
       <ThemeSwitcher />
     </div>
