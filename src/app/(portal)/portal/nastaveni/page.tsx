@@ -138,7 +138,7 @@ export default function PortalNastaveniPage() {
           </p>
         </div>
         {saved && (
-          <Badge className="bg-emerald-100 text-emerald-700 gap-1">
+          <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 gap-1">
             <CheckCircle2 className="h-3 w-3" /> Uloženo
           </Badge>
         )}

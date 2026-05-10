@@ -22,18 +22,28 @@ import {
   getStatusLabel,
   getStatusVariant,
 } from "@/lib/mock-data";
-import { Plus, Download, Eye, Pencil, CheckCircle2, Save } from "lucide-react";
+import { Plus, Download, Eye, Pencil, CheckCircle2, Save, Loader2 } from "lucide-react";
+import { generateInvoicePDF } from "@/lib/generate-pdf";
 
 type StatusFilter = "all" | "stavUhr.uhrazeno" | "stavUhr.castUhr" | "stavUhr.neuhrazeno";
 
-function triggerDownload(filename: string, content: string) {
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+function triggerBlobDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function triggerDownload(filename: string, content: string) {
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  triggerBlobDownload(blob, filename);
+}
+
+async function downloadPDF(faktura: FlexiFakturaVydana) {
+  const blob = await generateInvoicePDF(faktura);
+  triggerBlobDownload(blob, `${faktura.kod}.pdf`);
 }
 
 export default function FakturyVydanePage() {
@@ -130,7 +140,7 @@ export default function FakturyVydanePage() {
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailFaktura(row.original)} title="Detail">
             <Eye className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" title="Stáhnout PDF" onClick={() => triggerDownload(`${row.original.kod}.txt`, `[Demo] Faktura ${row.original.kod}\n${row.original.firmaObj?.nazev}\nČástka: ${row.original.sumCelkem} CZK`)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" title="Stáhnout PDF" onClick={() => downloadPDF(row.original)}>
             <Download className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -206,7 +216,7 @@ export default function FakturyVydanePage() {
                 <CheckCircle2 className="mr-2 h-4 w-4" /> Označit jako uhrazeno
               </Button>
             )}
-            <Button variant="outline" onClick={() => { if (detailFaktura) triggerDownload(`${detailFaktura.kod}.txt`, `[Demo] Faktura ${detailFaktura.kod}`); }}>
+            <Button variant="outline" onClick={() => { if (detailFaktura) downloadPDF(detailFaktura); }}>
               <Download className="mr-2 h-4 w-4" /> Stáhnout PDF
             </Button>
           </DialogFooter>

@@ -103,11 +103,11 @@ export default function AdminNastaveniPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm">Stav připojení</span>
               {flexiStatus === "ok" ? (
-                <Badge className="bg-emerald-100 text-emerald-700 gap-1"><CheckCircle2 className="h-3 w-3" /> Připojeno</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 gap-1"><CheckCircle2 className="h-3 w-3" /> Připojeno</Badge>
               ) : flexiStatus === "error" ? (
                 <Badge variant="destructive">Chyba</Badge>
               ) : (
-                <Badge className="bg-emerald-100 text-emerald-700">Připojeno</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">Připojeno</Badge>
               )}
             </div>
             <div className="space-y-2">
@@ -147,9 +147,9 @@ export default function AdminNastaveniPage() {
             <div className="flex items-center justify-between">
               <span className="text-sm">Stav</span>
               {smtpSaved ? (
-                <Badge className="bg-emerald-100 text-emerald-700 gap-1"><CheckCircle2 className="h-3 w-3" /> Uloženo</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 gap-1"><CheckCircle2 className="h-3 w-3" /> Uloženo</Badge>
               ) : smtp.server ? (
-                <Badge className="bg-emerald-100 text-emerald-700">Nakonfigurováno</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">Nakonfigurováno</Badge>
               ) : (
                 <Badge variant="secondary">Nenakonfigurováno</Badge>
               )}
@@ -210,7 +210,7 @@ export default function AdminNastaveniPage() {
                   </div>
                   <div className="flex items-center gap-2 ml-3">
                     <button onClick={() => toggleWebhook(wh.id)} className="cursor-pointer">
-                      <Badge className={wh.active ? "bg-emerald-100 text-emerald-700 cursor-pointer" : "cursor-pointer"} variant={wh.active ? "default" : "secondary"}>
+                      <Badge className={wh.active ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 cursor-pointer" : "cursor-pointer"} variant={wh.active ? "default" : "secondary"}>
                         {wh.active ? "Aktivní" : "Vypnuto"}
                       </Badge>
                     </button>
@@ -248,15 +248,15 @@ export default function AdminNastaveniPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span>Automatické odhlášení po nečinnosti</span>
-                <Badge className="bg-emerald-100 text-emerald-700">30 min</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">30 min</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span>Šifrování dat v klidu</span>
-                <Badge className="bg-emerald-100 text-emerald-700">AES-256</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">AES-256</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <span>Audit log</span>
-                <Badge className="bg-emerald-100 text-emerald-700">Aktivní</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">Aktivní</Badge>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={runAudit} disabled={auditStatus === "running"}>

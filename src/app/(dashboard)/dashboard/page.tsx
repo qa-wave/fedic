@@ -168,7 +168,7 @@ export default function DashboardPage() {
             {mockFakturyVydane.slice(0, 5).map((f) => (
               <div key={f.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
                     <ArrowUpRight className="h-4 w-4" />
                   </div>
                   <div>
@@ -196,7 +196,7 @@ export default function DashboardPage() {
             {mockBanka.slice(0, 5).map((b) => (
               <div key={b.id} className="flex items-center justify-between rounded-lg border p-3">
                 <div className="flex items-center gap-3">
-                  <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${b.sumCelkem > 0 ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                  <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${b.sumCelkem > 0 ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400" : "bg-red-50 text-red-500 dark:bg-red-950 dark:text-red-400"}`}>
                     {b.sumCelkem > 0 ? <ArrowDownLeft className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}
                   </div>
                   <div>
