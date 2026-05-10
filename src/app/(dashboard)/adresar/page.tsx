@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { type ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
@@ -61,12 +62,14 @@ export default function AdresarPage() {
       ]);
     }
     setDialogOpen(false);
+    toast.success(editingId ? "Kontakt upraven" : "Kontakt přidán");
   }
 
   function doDelete() {
     if (!deleteConfirm) return;
     setContacts((prev) => prev.filter((c) => c.id !== deleteConfirm.id));
     setDeleteConfirm(null);
+    toast.success("Kontakt smazán");
   }
 
   function exportCSV() {

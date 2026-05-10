@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -124,6 +125,7 @@ export default function PortalNastaveniPage() {
   function flashSaved() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    toast.success("Nastavení uloženo");
   }
 
   return (

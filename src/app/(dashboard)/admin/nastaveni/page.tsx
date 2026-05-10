@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,12 +43,13 @@ export default function AdminNastaveniPage() {
 
   function testConnection() {
     setFlexiStatus("testing");
-    setTimeout(() => setFlexiStatus("ok"), 1500);
+    setTimeout(() => { setFlexiStatus("ok"); toast.success("Připojení k Flexi API úspěšné"); }, 1500);
   }
 
   function saveSMTP() {
     setSmtpSaved(true);
     setTimeout(() => setSmtpSaved(false), 2000);
+    toast.success("SMTP nastavení uloženo");
   }
 
   function addWebhook() {
@@ -57,10 +59,12 @@ export default function AdminNastaveniPage() {
     ]);
     setNewWebhook({ name: "", url: "" });
     setWebhookDialogOpen(false);
+    toast.success("Webhook přidán");
   }
 
   function removeWebhook(id: number) {
     setWebhooks((prev) => prev.filter((w) => w.id !== id));
+    toast.success("Webhook smazán");
   }
 
   function toggleWebhook(id: number) {

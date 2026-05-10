@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Search, Plus, MoreHorizontal, Mail, Send, FileText, Building2, Pencil, Trash2, Eye, Save } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface Client {
   id: number;
@@ -90,6 +91,7 @@ export default function AdminKlientiPage() {
       ]);
     }
     setDialogOpen(false);
+    toast.success(editingId ? "Klient upraven" : "Klient vytvořen");
   }
 
   function confirmDelete(client: Client) {
@@ -100,6 +102,7 @@ export default function AdminKlientiPage() {
     if (!deleteConfirm) return;
     setClients((prev) => prev.filter((c) => c.id !== deleteConfirm.id));
     setDeleteConfirm(null);
+    toast.success("Klient smazán");
   }
 
   function toggleStatus(client: Client) {

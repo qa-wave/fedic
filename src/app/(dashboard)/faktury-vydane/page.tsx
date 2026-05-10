@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { type ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/shared/data-table";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +56,7 @@ export default function FakturyVydanePage() {
       )
     );
     setDetailFaktura(null);
+    toast.success("Faktura označena jako uhrazená");
   }
 
   function addFaktura() {
@@ -75,6 +77,7 @@ export default function FakturyVydanePage() {
     setFaktury((prev) => [newF, ...prev]);
     setAddDialogOpen(false);
     setForm({ kod: "", firma: "", datVyst: "", datSplat: "", sumCelkem: "", varSym: "", popis: "" });
+    toast.success("Faktura vytvořena");
   }
 
   function exportCSV() {
