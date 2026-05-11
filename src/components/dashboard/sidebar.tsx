@@ -173,7 +173,11 @@ export function DashboardSidebar() {
 
         {/* Footer */}
         <div className="border-t border-sidebar-border p-3">
-          <div className="mb-2 flex items-center gap-3 px-3 py-1">
+          <Link
+            href="/profil"
+            onClick={() => setMobileOpen(false)}
+            className="mb-2 flex items-center gap-3 rounded-lg px-3 py-1 transition-colors hover:bg-sidebar-accent/50"
+          >
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-accent text-xs font-bold text-sidebar-primary">
               RF
             </div>
@@ -181,7 +185,7 @@ export function DashboardSidebar() {
               <p className="text-xs font-medium">Radek Fedič</p>
               <p className="text-[10px] text-sidebar-foreground/50">Administrátor</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"

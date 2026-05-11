@@ -5,10 +5,11 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, FileText, FolderOpen, LogOut, Download, Settings, Upload } from "lucide-react";
+import { LayoutDashboard, FileText, FolderOpen, LogOut, Download, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/shared/theme-switcher";
-import { VisualStyleProvider, StyleSwitcherBar, useVisualStyle } from "@/components/shared/style-switcher";
+import { StylePicker } from "@/components/shared/style-picker";
+import { VisualStyleProvider, useVisualStyle } from "@/components/shared/style-switcher";
 
 const portalNav = [
   { href: "/portal", label: "Přehled", icon: LayoutDashboard },
@@ -16,6 +17,7 @@ const portalNav = [
   { href: "/portal/export", label: "Export", icon: Download },
   { href: "/portal/nastaveni", label: "Zasílání", icon: Settings },
   { href: "/portal/dokumenty", label: "Dokumenty", icon: FolderOpen },
+  { href: "/portal/profil", label: "Profil", icon: User },
 ];
 
 export default function PortalLayout({ children }: { children: React.ReactNode }) {
@@ -70,22 +72,20 @@ function PortalLayoutInner({ children }: { children: React.ReactNode }) {
               ))}
             </nav>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className={isDark ? "text-gray-400 hover:text-white" : "text-muted-foreground"}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Odhlásit</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <StylePicker />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className={isDark ? "text-gray-400 hover:text-white" : "text-muted-foreground"}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Odhlásit</span>
+            </Button>
+          </div>
         </div>
       </header>
-
-      {/* Style switcher */}
-      <div className={`border-b ${isDark ? "border-white/10 bg-gray-950/60" : style === "brutalist" ? "border-black bg-yellow-100" : "bg-background/60"} backdrop-blur-sm`}>
-        <StyleSwitcherBar />
-      </div>
 
       <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
       <ThemeSwitcher />

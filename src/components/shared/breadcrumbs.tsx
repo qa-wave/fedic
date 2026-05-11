@@ -22,6 +22,7 @@ const pathLabels: Record<string, string> = {
   "moje-faktury": "Moje faktury",
   export: "Export dat",
   dokumenty: "Dokumenty",
+  profil: "Můj profil",
 };
 
 export function Breadcrumbs() {
