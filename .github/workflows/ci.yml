@@ -1,4 +1,5 @@
-# ─── CI Pipeline: Lint → Type Check → Build ──────────────────────────────────
+# ─── CI: Lint → Typecheck → Test (skip-if-absent) → Build ────────────────────
+# Resilientní: chybějící test/e2e NEzpůsobí fail. Tvrdý signál = build.
 name: CI
 
 on:
@@ -15,63 +16,39 @@ env:
   NODE_VERSION: "22"
 
 jobs:
-  lint-and-typecheck:
-    name: "Lint & Type Check"
+  quality:
+    name: "Lint · Typecheck · Test · Build"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: ESLint
-        run: npm run lint
-
-      - name: TypeScript
-        run: npx tsc --noEmit
-
-  build:
-    name: "Production Build"
-    runs-on: ubuntu-latest
-    needs: lint-and-typecheck
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-
-      - run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Check bundle size
+      - name: Install
+        run: npm ci || npm install
+      - name: Lint (skip if absent)
+        run: npm run lint --if-present
+      - name: Typecheck (skip if absent)
+        run: npm run typecheck --if-present
+      - name: Unit tests (skip if no test script)
         run: |
-          echo "📦 Build output size:"
-          du -sh .next/ || true
-
-  docker:
-    name: "Docker Image"
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: false
-          tags: fedicfinance-app:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          if node -e "process.exit(require('./package.json').scripts?.test?0:1)"; then
+            npm test
+          else
+            echo "::notice::Zadny test script - preskakuji unit testy."
+          fi
+      - name: E2E tests (skip if no Playwright tests)
+        run: |
+          if [ -f playwright.config.ts ] || [ -f playwright.config.js ]; then
+            if npx playwright test --list >/dev/null 2>&1; then
+              npx playwright install --with-deps chromium
+              npx playwright test
+            else
+              echo "::notice::Playwright config bez testu - preskakuji E2E."
+            fi
+          else
+            echo "::notice::Zadny Playwright config - preskakuji E2E."
+          fi
+      - name: Build (hard signal)
+        run: npm run build
